@@ -1,4 +1,4 @@
-name: RDP via remote.it vip
+name: RDP via remote.it
 
 on: [workflow_dispatch]
 
@@ -8,6 +8,7 @@ jobs:
 
     steps:
       - name: Enable RDP & Create User
+        shell: pwsh
         run: |
           net user locnguyen Loc12345s@ /add
           net localgroup administrators locnguyen /add
@@ -15,12 +16,16 @@ jobs:
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
       - name: Install remote.it CLI
+        shell: pwsh
         run: |
-          curl -L -o remoteit.zip https://downloads.remote.it/cli/remoteit-win.zipExpand-Archive remoteit.zip -DestinationPath "$env:USERPROFILE\remoteit"
-          cd $env:USERPROFILE\remoteit
-          .\remoteit.exe login --username ${{ secrets.REMOTEIT_USERNAME }} --password ${{ secrets.REMOTEIT_PASSWORD }}
+          curl -L -o remoteit.zip https://downloads.remote.it/cli/remoteit-win.zip
+          New-Item -ItemType Directory -Path "$env:USERPROFILE\remoteit" -Force
+          Expand-Archive -Path "remoteit.zip" -DestinationPath "$env:USERPROFILE\remoteit"
+          Set-Location "$env:USERPROFILE\remoteit"
+          .\remoteit.exe login --username "${{ secrets.REMOTEIT_USERNAME }}" --password "${{ secrets.REMOTEIT_PASSWORD }}"
           .\remoteit.exe register --name "${{ secrets.DEVICE_NAME }}" --port 3389
           .\remoteit.exe connect --name "${{ secrets.DEVICE_NAME }}" --port 3389
 
       - name: Keep session alive
+        shell: pwsh
         run: Start-Sleep -Seconds 21600
