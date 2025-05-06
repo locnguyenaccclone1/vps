@@ -1,0 +1,27 @@
+name: RDP via remote.it
+
+on: [workflow_dispatch]
+
+jobs:
+  start-rdp:
+    runs-on: windows-latest
+
+    steps:
+      - name: Enable RDP & Create User
+        run: |
+          net user locnguyen Loc12345s@ /add
+          net localgroup administrators locnguyen /add
+          Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name fDenyTSConnections -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+      - name: Install remote.it CLI
+        run: |
+          Invoke-WebRequest https://downloads.remote.it/cli/remoteit-win.zip -OutFile remoteit.zip
+          Expand-Archive remoteit.zip -DestinationPath "$env:USERPROFILE\remoteit"
+          cd $env:USERPROFILE\remoteit
+          .\remoteit.exe login --username ${{ secrets.REMOTEIT_USERNAME }} --password ${{ secrets.REMOTEIT_PASSWORD }}
+          .\remoteit.exe register --name "${{ secrets.DEVICE_NAME }}" --port 3389
+          .\remoteit.exe connect --name "${{ secrets.DEVICE_NAME }}" --port 3389
+
+      - name: Keep session alive
+        run: Start-Sleep -Seconds 21600
