@@ -1,4 +1,4 @@
-name: RDP via remote.it
+name: RDP via remote.it vip
 
 on: [workflow_dispatch]
 
@@ -16,8 +16,7 @@ jobs:
 
       - name: Install remote.it CLI
         run: |
-          Invoke-WebRequest https://downloads.remote.it/cli/remoteit-win.zip -OutFile remoteit.zip -UseBasicParsing
-          Expand-Archive remoteit.zip -DestinationPath "$env:USERPROFILE\remoteit"
+          curl -L -o remoteit.zip https://downloads.remote.it/cli/remoteit-win.zipExpand-Archive remoteit.zip -DestinationPath "$env:USERPROFILE\remoteit"
           cd $env:USERPROFILE\remoteit
           .\remoteit.exe login --username ${{ secrets.REMOTEIT_USERNAME }} --password ${{ secrets.REMOTEIT_PASSWORD }}
           .\remoteit.exe register --name "${{ secrets.DEVICE_NAME }}" --port 3389
